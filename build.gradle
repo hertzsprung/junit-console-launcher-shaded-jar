@@ -15,6 +15,7 @@ test {
 
 dependencies {
   testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+  testRuntimeOnly 'org.junit.platform:junit-platform-console-standalone:1.8.2'
 }
 
 shadowJar {
@@ -22,17 +23,10 @@ shadowJar {
   configurations = [project.configurations.testRuntimeClasspath]
 }
 
-configurations {
-  junitConsoleLauncher
-}
-
-dependencies {
-  junitConsoleLauncher 'org.junit.platform:junit-platform-console-standalone:1.8.2'
-}
-
 tasks.register('junitConsoleLauncher', JavaExec) {
+  javaLauncher.set(javaToolchains.launcherFor(java.toolchain)) // https://github.com/gradle/gradle/issues/16791#issue-855982209
   mainClass = 'org.junit.platform.console.ConsoleLauncher'
-  classpath configurations.junitConsoleLauncher
-  args '--scan-classpath', "--classpath=${shadowJar.archiveFile.get()}"
+  classpath shadowJar.archiveFile.get()
+  args "--scan-classpath=${shadowJar.archiveFile.get()}"
   dependsOn shadowJar
 }
