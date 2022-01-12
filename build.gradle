@@ -1,0 +1,38 @@
+plugins {
+  id 'java'
+  id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+java {
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(17)
+  }
+}
+
+test {
+  useJUnitPlatform()
+}
+
+dependencies {
+  testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+}
+
+shadowJar {
+  from sourceSets.test.output
+  configurations = [project.configurations.testRuntimeClasspath]
+}
+
+configurations {
+  junitConsoleLauncher
+}
+
+dependencies {
+  junitConsoleLauncher 'org.junit.platform:junit-platform-console-standalone:1.8.2'
+}
+
+tasks.register('junitConsoleLauncher', JavaExec) {
+  mainClass = 'org.junit.platform.console.ConsoleLauncher'
+  classpath configurations.junitConsoleLauncher
+  args '--scan-classpath', "--classpath=${shadowJar.archiveFile.get()}"
+  dependsOn shadowJar
+}
